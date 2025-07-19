@@ -171,7 +171,7 @@ export class Web3Service {
       Object.entries(this.providers).forEach(async ([chain, provider]) => {
         try {
           const feeData = await provider.getFeeData()
-          const baseFee = Number(feeData.baseFeePerGas || feeData.gasPrice || 0)
+          const baseFee = Number(feeData.gasPrice || 0)
           const priorityFee = Number(feeData.maxPriorityFeePerGas || 0)
           const totalFee = calculateTotalFee(baseFee, priorityFee)
 
