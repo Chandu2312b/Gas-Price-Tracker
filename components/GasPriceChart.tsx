@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, IChartApi, ISeriesApi, CandlestickData } from 'lightweight-charts'
+import { createChart, IChartApi, ISeriesApi, CandlestickData, UTCTimestamp } from 'lightweight-charts'
 import { useAppStore, GasPoint } from '@/lib/store'
 
 interface GasPriceChartProps {
@@ -41,7 +41,7 @@ export default function GasPriceChart({ chain, height = 400 }: GasPriceChartProp
         const low = Math.min(...prices)
 
         return {
-          time: Number(timestamp) / 1000, // Convert to seconds for chart
+          time: (Number(timestamp) / 1000) as UTCTimestamp, // Fix: cast to UTCTimestamp
           open,
           high,
           low,
