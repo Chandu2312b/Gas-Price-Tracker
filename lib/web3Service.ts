@@ -19,7 +19,8 @@ const calculateGasCostUSD = (totalFee: number, gasLimit: number, usdPrice: numbe
 const calculateUSDPrice = (sqrtPriceX96: string): number => {
   const price = ethers.parseUnits(sqrtPriceX96, 0)
   const priceSquared = price * price
-  const usdPrice = (priceSquared * BigInt(10 ** 12)) / (BigInt(2) ** BigInt(192))
+  // Use literal values to avoid BigInt exponentiation
+  const usdPrice = (priceSquared * BigInt(1_000_000_000_000)) / BigInt("6277101735386680763835789423207666416102355444464034512896")
   return Number(ethers.formatUnits(usdPrice, 6)) // USDC has 6 decimals
 }
 
@@ -74,15 +75,11 @@ export class Web3Service {
         baseFee = Number(block.baseFeePerGas || 0)
         // For Ethereum, we need to estimate priority fee
         priorityFee = await this.estimatePriorityFee(provider)
-      } else if (chain === 'polygon') {
-        // Polygon uses legacy gas pricing
-        const gasPrice = Number(block.gasPrice || 0)
-        baseFee = gasPrice
-        priorityFee = 0
-      } else if (chain === 'arbitrum') {
-        // Arbitrum uses L1 gas pricing
-        baseFee = Number(block.gasPrice || 0)
-        priorityFee = 0
+      } else if (chain === 'polygon' || chain === 'arbitrum') {
+        // Use provider.getFeeData() for legacy chains
+        const feeData = await provider.getFeeData();
+        baseFee = Number(feeData.gasPrice || 0);
+        priorityFee = 0;
       }
 
       const totalFee = calculateTotalFee(baseFee, priorityFee)
@@ -174,7 +171,7 @@ export class Web3Service {
       Object.entries(this.providers).forEach(async ([chain, provider]) => {
         try {
           const feeData = await provider.getFeeData()
-          const baseFee = Number(feeData.lastBaseFeePerGas || feeData.gasPrice || 0)
+          const baseFee = Number(feeData.baseFeePerGas || feeData.gasPrice || 0)
           const priorityFee = Number(feeData.maxPriorityFeePerGas || 0)
           const totalFee = calculateTotalFee(baseFee, priorityFee)
 
